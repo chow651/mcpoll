@@ -56,6 +56,21 @@ Two things, and it tries hard to do nothing else:
 | **Editing prompts / upstream MCP servers** | Out of scope by design. |
 | **A resident daemon** | `node bin/ui.mjs` serves loopback; close it and it is gone. The desktop app kills the server when the window closes. |
 
+## Who else writes these files
+
+`mcpoll` writes host config files. So does magpie's Library, for the servers it installed from its market:
+it syncs each ticked server into every agent the user picked. Two writers on one file means one of them
+silently loses.
+
+So mcpoll reads `~/.config/magpie/library.json` (read-only, if it exists) and, for a server that magpie
+syncs into that host, **shows `magpie 管理` instead of a switch** and refuses the write with a 409. The
+cost numbers stay — the waste is still the point — and the note says where the switch really is.
+
+Servers that are *not* in the Library (hand-written entries, other tools) are nobody else's, and mcpoll
+writes them as before. On a machine with no magpie the file is absent and nothing is locked.
+
+Override the path with `MCPOLL_MAGPIE_CONFIG` if yours lives elsewhere.
+
 ## Host support
 
 *Measured* means the log contains both tool definitions and token counts for the same request. Where it
@@ -214,6 +229,11 @@ MCP 的工具定义每轮请求都会重新塞进上下文。一个装了几个�
 
 不做：抓包代理、工具级过滤、schema 压缩、改提示词、常驻守护进程。前几项都实测过，收益是负的
 （meta 工具把 21 秒 2 步的任务拖成 122 秒 12 步）。
+
+**谁在写同一份配置**：magpie 的 Library 会把它从社区装的 MCP server 同步进每个勾选的 agent。同一个文件两个写者，
+必然会有一个被覆盖。所以 mcpoll 只读 `~/.config/magpie/library.json`，凡是 magpie 同步的 `(宿主, server)`，
+开关位置显示 `magpie 管理` 并拒绝写入（409），账照算、话说明白。不在 Library 里的 server 照旧可写；
+没装 magpie 的机器上这个文件不存在，什么都不锁。
 
 **算不准就不算**：日志里凑不齐「工具定义 + token 计数」的宿主（Codex / Gemini / Cursor）不渲染
 任何成本、占比、累计占用，只显示调用次数。`—` 的意思是「这里测不出来」，不是 0。

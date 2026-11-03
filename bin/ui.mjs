@@ -22,6 +22,7 @@ import { buildState, loadRegistry, REGISTRY_PATH, ROOT as MCPOLL_ROOT } from "..
 import { adapters, project } from "../lib/hosts.mjs";
 import { loadCalibration, setFactor, provenanceFor } from "../lib/calibration.mjs";
 import { dataPath } from "../lib/paths.mjs";
+import { magpieLibrary, magpieOwns } from "../lib/library.mjs";
 import { inventory, loadCache } from "../lib/inventory.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -71,10 +72,19 @@ async function readBody(req) {
 // One atomic write for a whole batch of switches.
 function saveChanges(changes) {
   const reg = loadRegistry();
+  const lib = magpieLibrary();
   const applied = [];
   for (const { host, server, mode } of changes) {
     if (!reg.hosts?.[host]) throw Object.assign(new Error(`unknown host '${host}'`), { status: 400 });
     if (!["native", "off"].includes(mode)) throw Object.assign(new Error(`bad mode '${mode}'`), { status: 400 });
+    // magpie's Library syncs this one into the host, so writing it here would be
+    // undone on its next sync. Say so instead of fighting over the file.
+    if (magpieOwns(host, server, lib)) {
+      throw Object.assign(
+        new Error(`${server} 在 ${host} 由 magpie Library 同步，改这里会被覆盖；请在 magpie 的 Library 里取消勾选`),
+        { status: 409 },
+      );
+    }
     reg.hosts[host].servers ??= {};
     reg.hosts[host].servers[server] ??= {};
     reg.hosts[host].servers[server].mode = mode;

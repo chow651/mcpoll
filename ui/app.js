@@ -68,6 +68,9 @@ async function api(path, body) {
 const hostOf = (name) => S?.hosts.find((h) => h.name === name);
 const usageOf = (name) => S?.usage[name] ?? null;
 
+// magpie's Library syncs these servers into the host, so the switch belongs to it
+const ownedBy = (host, server) => (S?.library?.owners?.[host] ?? []).includes(server);
+
 function effectiveMode(host, server) {
   const k = key(host, server);
   if (draft.has(k)) return draft.get(k);
@@ -227,8 +230,17 @@ function renderNote() {
   el.innerHTML =
     `<span class="grow"><strong>${esc(st.dead.map((r) => r.server).join("、"))}</strong> 在 ${st.sessions} 个会话里一次都没被调用，` +
     `但每次请求仍占 ${fmt(st.deadTokens)} tokens。</span><button class="btn" id="note-off">全部关闭</button>`;
+  const writable = st.dead.filter((r) => !ownedBy(activeHost, r.server));
+  if (!writable.length) {
+    // nothing here can be switched off from this app: say where it can
+    el.hidden = false;
+    el.innerHTML =
+      `<span class="grow"><strong>${esc(st.dead.map((r) => r.server).join("、"))}</strong> 在 ${st.sessions} 个会话里一次都没被调用，` +
+      `但每次请求仍占 ${fmt(st.deadTokens)} tokens。它由 <strong>magpie Library</strong> 同步进这个宿主 —— 在那边取消勾选才会真正生效。</span>`;
+    return;
+  }
   $("#note-off").onclick = () => {
-    for (const r of st.dead) draft.set(key(activeHost, r.server), "off");
+    for (const r of writable) draft.set(key(activeHost, r.server), "off");
     render();
   };
 }
@@ -272,7 +284,9 @@ function renderRows() {
       const share = !off && u?.avgCtx && r.perReq != null ? pct(r.perReq, u.avgCtx) : null;
       const tone = waste ? "bad" : off ? "" : r.calls ? "ok" : "";
       const nameCell = `<div class="r-name"><i class="dot ${tone}"></i><span title="${esc(r.server)}">${esc(r.server)}</span>${off ? '<span class="tag">off</span>' : ""}</div>`;
-      const segCell = segHtml(r.server, r.mode);
+      const segCell = ownedBy(activeHost, r.server)
+        ? `<div class="r-lock" title="magpie Library 把 ${esc(r.server)} 同步进这个宿主，改这里会被覆盖">magpie 管理</div>`
+        : segHtml(r.server, r.mode);
       if (!priced) {
         return `<div class="row${off ? " off" : ""}${i === selected ? " sel" : ""}" data-server="${esc(r.server)}">
           ${nameCell}
@@ -351,6 +365,7 @@ function renderPeek(server) {
       <dt>实际调用次数</dt><dd>${r.calls}</dd>
       <dt>累计上下文占用</dt><dd>${r.occupancy ? fmt(r.occupancy) : "—"}</dd>
       <dt>当前暴露</dt><dd>${r.mode === "off" ? "关闭" : "开启"}${r.mode !== r.savedMode ? "（未保存）" : ""}</dd>
+      ${ownedBy(activeHost, r.server) ? `<dt>开关归属</dt><dd>magpie Library 同步此 server，这里只读</dd>` : ""}
     </dl>
     ${
       top.length

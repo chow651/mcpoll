@@ -513,3 +513,12 @@ body.peeking .peek { translate: 0 0; opacity: 1; }
   grid-template-columns: minmax(160px, 1fr) 64px 94px;
 }
 
+
+/* a server another tool syncs into the host: no switch here */
+.r-lock {
+  font-size: var(--fs-sm);
+  color: var(--c-fg-4);
+  text-align: center;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
