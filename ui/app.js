@@ -13,6 +13,7 @@ let selected = -1;
 let query = "";
 let draft = new Map();   // "host|server" -> mode
 let busy = false;
+let GW = null;            // local gateway audit (money per client), if one is running
 let settings = { theme: "system", density: "cozy" };
 let lastSave = [];
 
@@ -58,6 +59,18 @@ matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
 });
 
 // ── api ───────────────────────────────────────────────────────
+async function loadGateway() {
+  try {
+    const g = await api("/api/gateway");
+    GW = g?.up ? g : null;
+  } catch {
+    GW = null;
+  }
+  renderKpis();
+}
+
+const gwRow = (host) => GW?.usage?.rows?.find((r) => r.host === host) ?? null;
+
 async function api(path, body) {
   const res = await fetch(path, body ? { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) } : {});
   const data = await res.json().catch(() => ({}));
@@ -191,6 +204,24 @@ function renderKpis() {
     cells.push({ label: "零调用占用", to: st.deadTokens, note: st.dead.length ? `${st.dead.map((r) => r.server).join(" / ")} · 已开启但日志里 0 次调用` : "已开启的 server 都有调用", cls: st.deadTokens ? "danger" : "" });
     cells.push({ label: "可释放", to: st.deadTokens * st.requests, note: "关掉后累计省下的上下文", cls: st.deadTokens ? "good" : "" });
   }
+  const g = gwRow(activeHost);
+  if (g && g.calls) {
+    const unp = g.calls ? Math.round((g.unpriced / g.calls) * 100) : 0;
+    cells.push({
+      label: "网关实测花费 / 30 天",
+      text: `$${g.cost.toFixed(2)}`,
+      note: `${g.calls.toLocaleString("en-US")} 次调用 · magpie 审计`,
+    });
+    if (g.unpriced) {
+      cells.push({
+        label: "其中无价格的调用",
+        to: g.unpriced,
+        note: `${unp}% 的调用所用的模型没有价目，只计入调用数`,
+        cls: "danger",
+      });
+    }
+  }
+
   if (!cells.length) {
     // Nothing here can be measured, so there is nothing to show above the table.
     $("#kpis").hidden = true;
@@ -209,7 +240,9 @@ function renderKpis() {
     node.className = `kpi ${c.cls ?? ""}`;
     node.querySelector("span").textContent = c.note;
     const b = node.querySelector("b");
-    if (c.mono) {
+    if (c.text != null) {
+      b.textContent = c.text;
+    } else if (c.mono) {
       b.dataset.value = String(c.to);
       b.textContent = fmt(c.to);
     } else countTo(b, c.to);
@@ -406,6 +439,7 @@ async function load({ host = null, force = false, quiet = false } = {}) {
     S = await api(`/api/state${q.toString() ? `?${q}` : ""}`);
     if (!activeHost || !S.hosts.some((h) => h.name === activeHost)) activeHost = S.hosts[0]?.name;
     render();
+    loadGateway();
     const t = new Date(S.generatedAt).toLocaleTimeString("zh-CN");
     $("#stamp-text").textContent = `更新于 ${t}`;
     return S;

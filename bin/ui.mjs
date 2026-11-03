@@ -23,6 +23,7 @@ import { adapters, project } from "../lib/hosts.mjs";
 import { loadCalibration, setFactor, provenanceFor } from "../lib/calibration.mjs";
 import { dataPath } from "../lib/paths.mjs";
 import { inventory, loadCache } from "../lib/inventory.mjs";
+import { probe as gatewayProbe, usageByAgent } from "../lib/magpie.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const UI = join(HERE, "..", "ui");
@@ -38,6 +39,7 @@ const MIME = { ".html": "text/html; charset=utf-8", ".js": "text/javascript; cha
 
 let cache = new Map(); // per-host state
 let inflight = new Map();
+let gwCache = null; // gateway audit snapshot, refreshed at most once a minute
 
 async function state(host, { force = false, probe = false } = {}) {
   const key = `${host ?? "*"}|${probe ? "p" : ""}`;
@@ -158,6 +160,23 @@ const server = createServer(async (req, res) => {
       if (!target || !existsSync(target)) return json(res, 404, { error: "not found" });
       spawn("explorer", [`/select,${target}`], { detached: true, stdio: "ignore" }).unref();
       return json(res, 200, { ok: true });
+    }
+
+    if (p === "/api/gateway") {
+      // Optional: if a local magpie gateway is running it already holds the whole
+      // bill (money per client). We read it; we never write to it.
+      const now = Date.now();
+      if (!gwCache || now - gwCache.at > 60_000) {
+        const gw = await gatewayProbe();
+        let usage = null;
+        if (gw.up) {
+          try {
+            usage = await usageByAgent({ base: gw.base, period: "30d" });
+          } catch {}
+        }
+        gwCache = { at: now, value: { ...gw, usage } };
+      }
+      return json(res, 200, gwCache.value);
     }
 
     if (p === "/api/calibration") {

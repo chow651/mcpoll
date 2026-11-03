@@ -124,6 +124,45 @@ node bin/mcpoll.mjs apply --dry-run
 node bin/mcpoll.mjs apply        # write it (backup first)
 ```
 
+## The other half of the bill: your gateway
+
+Per-server pricing needs logs that record tool definitions. **Money** needs a vantage point that sees
+every request — which a local LLM gateway already has. mcpoll reads it, read-only, if one is running
+(default `http://127.0.0.1:3425`, override with `MAGPIE_URL`):
+
+```bash
+node bin/magpie-audit.mjs                 # per-client calls / tokens / money for 30d
+node bin/magpie-audit.mjs --period 7d
+node bin/magpie-audit.mjs --recent 10     # one line per recent request
+```
+
+On the author's machine that is 30 days of traffic:
+
+| client | calls | input | cache read | output | cost | unpriced |
+|---|---|---|---|---|---|---|
+| Codex | 2,711 | 43.4M | 665.6M | 2.3M | **$135.09** | 1,109 (41%) |
+| DSH | 11,583 | 59.8M | 2.75B | 8.0M | **$107.51** | 4,199 (36%) |
+| Claude Code | 23,836 | 79.3M | 2.68B | 21.5M | **$34.62** | 6,737 (28%) |
+| *total* | 44,387 | 198.0M | 6.47B | 34.2M | **$283.00** | 13,055 |
+
+Three things fall out of that table:
+
+1. **The gateway is the only complete bill.** It sees clients whose logs mcpoll cannot parse, and it turns
+   usage into money using the provider's own price table.
+2. **It is honest about its own holes.** 13,055 calls have no price for their model; they are counted as
+   calls, never as money. Same rule as the rest of mcpoll.
+3. **The local logs undercount.** Codex's rollout files hold 1,364 usage records; the gateway saw 2,711
+   calls in the same window. Log parsing alone was never going to give the full number.
+
+What the gateway *cannot* do is split that money per MCP server: its audit stores counters, not the
+request's `tools` array. That split requires a gateway plugin that records, per request, the namespaces
+and characters of the tools it forwarded — then the two halves join on request id. Until such a plugin
+exists, mcpoll keeps the two views separate and labels each one for what it is:
+
+- **per server** (this app, from session logs) — Claude Code, DSH only
+- **per client, in money** (gateway audit) — whoever routes through the gateway
+- **calls** (session logs) — everyone with a log
+
 ## How the numbers are produced
 
 The unit is **per request**, not per session: context is rebuilt every turn, so cost = per-request
@@ -201,6 +240,20 @@ MCP 的工具定义每轮请求都会重新塞进上下文。一个装了几个�
 
 不做：抓包代理、工具级过滤、schema 压缩、改提示词、常驻守护进程。前几项都实测过，收益是负的
 （meta 工具把 21 秒 2 步的任务拖成 122 秒 12 步）。
+
+**账单有两半。** 每个 server 摊多少，只能从「记了工具定义」的日志里算；花了多少钱，需要一个看得见
+所有请求的位置 —— 本地网关本来就有，mcpoll 只读地接上（默认 `http://127.0.0.1:3425`）：
+
+```bash
+node bin/magpie-audit.mjs      # 每个客户端 30 天的调用/token/金额
+```
+
+作者机器上 30 天：Codex $135.09（2,711 次调用，41% 调用无价目）、DSH $107.51、Claude Code $34.62，
+合计 $283.00。同期 Codex 本地 rollout 只记了 1,364 条 usage —— **光靠解析日志永远拿不到全账**。
+
+网关补不上的那一块是「按 server 拆」：它的审计只存计数，不存请求里的 `tools` 数组。要拆到 server 级，
+得给它写插件，把每次转发的工具命名空间和字符数记下来，再用请求 id 和这边 join。在做之前，两边分开显示，
+各自标清楚是什么口径。
 
 **算不准就不算**：日志里凑不齐「工具定义 + token 计数」的宿主（Codex / Gemini / Cursor）不渲染
 任何成本、占比、累计占用，只显示调用次数。`—` 的意思是「这里测不出来」，不是 0。
