@@ -7,8 +7,7 @@
   "main": "desktop/main.cjs",
   "bin": {
     "mcpoll": "bin/mcpoll.mjs",
-    "mcpoll-tax": "bin/tax.mjs",
-    "mcpoll-audit": "bin/magpie-audit.mjs"
+    "mcpoll-tax": "bin/tax.mjs"
   },
   "scripts": {
     "ui": "node bin/ui.mjs",
@@ -16,8 +15,7 @@
     "status": "node bin/mcpoll.mjs status",
     "desktop": "electron .",
     "dist": "electron-builder --win --x64",
-    "dist:dir": "electron-builder --win --x64 --dir",
-    "audit": "node bin/magpie-audit.mjs"
+    "dist:dir": "electron-builder --win --x64 --dir"
   },
   "devDependencies": {
     "electron": "^45.2.1",
