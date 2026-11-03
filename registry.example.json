@@ -1,0 +1,60 @@
+{
+  "$comment": "Desired state per host. mode: native (present in that host's config) | off (absent). This file is seeded to the data dir on first run; the panel rewrites it when you flip switches. registry.json (no .example) is your live copy and is git-ignored.",
+  "version": 1,
+  "servers": {
+    "context7": {
+      "transport": "http",
+      "url": "https://mcp.context7.com/mcp",
+      "tags": ["docs"]
+    },
+    "jina-mcp-tools": {
+      "transport": "stdio",
+      "command": "npx",
+      "args": ["jina-mcp-tools"],
+      "tags": ["search"]
+    },
+    "firecrawl": {
+      "transport": "http",
+      "url": "https://mcp.firecrawl.dev/v2/mcp",
+      "headers": {
+        "Authorization": "Bearer ${FIRECRAWL_API_KEY}"
+      },
+      "tags": ["scrape"]
+    }
+  },
+  "hosts": {
+    "claude-code": {
+      "adapter": "claude-json",
+      "servers": {
+        "context7": { "mode": "native" },
+        "jina-mcp-tools": { "mode": "native" },
+        "firecrawl": { "mode": "native" }
+      }
+    },
+    "codex": {
+      "adapter": "codex-toml",
+      "servers": {
+        "context7": { "mode": "native" }
+      }
+    },
+    "gemini": {
+      "adapter": "gemini-json",
+      "servers": {
+        "context7": { "mode": "native" }
+      }
+    },
+    "cursor": {
+      "adapter": "cursor-json",
+      "servers": {
+        "context7": { "mode": "native" },
+        "firecrawl": { "mode": "native" }
+      }
+    },
+    "dsh": {
+      "adapter": "dsh-yaml",
+      "servers": {
+        "context7": { "mode": "native" }
+      }
+    }
+  }
+}

@@ -1,0 +1,136 @@
+/* ─────────────────────────────────────────────────────────────
+   mcpoll design tokens — the single source of truth.
+   Nothing outside this file may contain a raw colour, radius,
+   duration or font stack. Palette derived from magpie's own site
+   (#0b0b0c canvas, #26262a hairlines, no accent hue) so the panel
+   reads as the same family of tool.
+   ───────────────────────────────────────────────────────────── */
+
+:root {
+  /* ── palette · surfaces (monochrome, warm-neutral) ─────────── */
+  --c-bg: #0b0b0c;
+  --c-bg-side: #0d0d0f;
+  --c-surface: #121214;
+  --c-surface-hi: #161618;
+  --c-surface-2: #1b1b1e;
+  --c-surface-3: #202024;
+
+  /* ── palette · lines ──────────────────────────────────────── */
+  --c-line: #232327;
+  --c-line-soft: #1a1a1d;
+  --c-line-strong: #35353c;
+
+  /* ── palette · text ───────────────────────────────────────── */
+  --c-fg: #f5f5f7;
+  --c-fg-2: #b6b6bd;
+  --c-fg-3: #8a8a92;
+  --c-fg-4: #6b6b73;
+
+  /* ── palette · meaning (never decoration) ─────────────────── */
+  --c-accent: #0a84ff; /* focus + selection only, macOS system blue */
+  --c-bad: #e8747a;
+  --c-warn: #d8a657;
+  --c-ok: #83b883;
+
+  /* ── type ─────────────────────────────────────────────────── */
+  --font-sans: "SF Pro SC", "SF Pro Text", -apple-system, BlinkMacSystemFont, "PingFang SC",
+    "HarmonyOS Sans SC", "MiSans", "Segoe UI", "Microsoft YaHei", sans-serif;
+  --font-mono: "SF Mono", ui-monospace, "Cascadia Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+
+  --fs-micro: 11.5px;
+  --fs-sm: 12.5px;
+  --fs-base: 14px;
+  --fs-md: 14.5px;
+  --fs-display: 25px;
+
+  --lh-tight: 1.35;
+  --lh-base: 1.6;
+  --lh-loose: 1.8;
+  --tracking-caps: 0.07em;
+  --tracking-tight: -0.01em;
+
+  /* ── space (4px base) ─────────────────────────────────────── */
+  --s-1: 4px;
+  --s-2: 6px;
+  --s-3: 8px;
+  --s-4: 12px;
+  --s-5: 16px;
+  --s-6: 20px;
+  --s-7: 24px;
+  --s-8: 32px;
+
+  /* ── radius ───────────────────────────────────────────────── */
+  --r-1: 5px;
+  --r-2: 7px;
+  --r-3: 9px;
+  --r-pill: 999px;
+
+  /* ── elevation ────────────────────────────────────────────── */
+  --sh-inset: inset 0 1px 0 rgb(255 255 255 / 0.04);
+  --sh-1: 0 1px 2px rgb(0 0 0 / 0.35);
+  --sh-2: 0 12px 32px rgb(0 0 0 / 0.5), 0 0 0 1px var(--c-line);
+
+  /* ── motion ─ three gestures only: click, drawer, entrance ── */
+  --d-click: 90ms;
+  --d-fast: 140ms;
+  --d-drawer: 210ms;
+  --d-entrance: 260ms;
+  --d-number: 360ms;
+
+  --e-click: cubic-bezier(0.2, 0.9, 0.25, 1);
+  --e-drawer: cubic-bezier(0.22, 1, 0.36, 1);
+  --e-entrance: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* ── layout ───────────────────────────────────────────────── */
+  --h-toolbar: 48px;
+  --w-rail: 216px;
+  --w-peek: 424px;
+  --w-content: 1060px;
+  --z-peek: 30;
+  --z-sheet: 40;
+  --z-toast: 50;
+}
+
+/* ── light theme ────────────────────────────────────────────── */
+:root[data-theme="light"] {
+  --c-bg: #fbfbfd;
+  --c-bg-side: #f4f4f7;
+  --c-surface: #ffffff;
+  --c-surface-hi: #f1f1f5;
+  --c-surface-2: #eaeaef;
+  --c-surface-3: #e0e0e7;
+  --c-line: #dcdce3;
+  --c-line-soft: #e9e9ef;
+  --c-line-strong: #c6c6d0;
+  --c-fg: #101014;
+  --c-fg-2: #4a4a54;
+  --c-fg-3: #74747e;
+  --c-fg-4: #9b9ba5;
+  --c-bad: #c3343c;
+  --c-warn: #96650a;
+  --c-ok: #2c7a3f;
+  --sh-inset: inset 0 1px 0 rgb(255 255 255 / 0.9);
+  --sh-1: 0 1px 2px rgb(16 16 20 / 0.08);
+  --sh-2: 0 12px 32px rgb(16 16 20 / 0.18), 0 0 0 1px var(--c-line);
+}
+
+/* ── density ────────────────────────────────────────────────── */
+:root[data-density="compact"] {
+  --row-h: 36px;
+  --s-4: 10px;
+  --s-5: 13px;
+  --s-6: 16px;
+  --s-7: 20px;
+}
+:root { --row-h: 46px; }
+
+/* The macOS habit: honour the system setting. */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --d-click: 0ms;
+    --d-fast: 0ms;
+    --d-drawer: 0ms;
+    --d-entrance: 0ms;
+    --d-number: 0ms;
+  }
+}

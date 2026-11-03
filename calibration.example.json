@@ -1,0 +1,35 @@
+{
+  "hosts": {
+    "dsh": {
+      "regime": "inline",
+      "tokensPerChar": 0.2293,
+      "source": "measured",
+      "method": "measured on the author's machine — re-run bin/calibrate.mjs for your own model/host"
+    },
+    "claude-code": {
+      "regime": "deferred",
+      "tokensPerChar": 0.026,
+      "tokensPerTool": 10.5,
+      "source": "measured",
+      "method": "measured on the author's machine — re-run bin/calibrate.mjs for your own model/host"
+    },
+    "codex": {
+      "regime": "unknown",
+      "tokensPerChar": null,
+      "source": "none",
+      "method": "no usable log on this machine — call counts only"
+    },
+    "gemini": {
+      "regime": "unknown",
+      "tokensPerChar": null,
+      "source": "none",
+      "method": "no usable log on this machine — call counts only"
+    },
+    "cursor": {
+      "regime": "unknown",
+      "tokensPerChar": null,
+      "source": "none",
+      "method": "no usable log on this machine — call counts only"
+    }
+  }
+}

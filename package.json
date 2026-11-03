@@ -1,0 +1,62 @@
+{
+  "name": "mcpoll",
+  "version": "0.1.0",
+  "private": true,
+  "description": "MCP context ledger + per-host on/off switches",
+  "type": "module",
+  "main": "desktop/main.cjs",
+  "bin": {
+    "mcpoll": "bin/mcpoll.mjs",
+    "mcpoll-tax": "bin/tax.mjs"
+  },
+  "scripts": {
+    "ui": "node bin/ui.mjs",
+    "tax": "node bin/tax.mjs",
+    "status": "node bin/mcpoll.mjs status",
+    "desktop": "electron .",
+    "dist": "electron-builder --win --x64",
+    "dist:dir": "electron-builder --win --x64 --dir"
+  },
+  "devDependencies": {
+    "electron": "^45.2.1",
+    "electron-builder": "^26.0.12"
+  },
+  "build": {
+    "appId": "dev.luvzexi.mcpoll",
+    "productName": "mcpoll",
+    "asar": false,
+    "directories": {
+      "output": "release",
+      "buildResources": "build"
+    },
+    "files": [
+      "desktop/**/*",
+      "bin/**/*",
+      "lib/**/*",
+      "ui/**/*",
+      "registry.example.json",
+      "calibration.example.json",
+      "!test/**/*",
+      "!**/*.md"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "shortcutName": "mcpoll"
+    }
+  },
+  "author": "luvzexi",
+  "license": "MIT"
+}

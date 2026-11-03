@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="dark" data-density="cozy">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>mcpoll</title>
+<link rel="stylesheet" href="/tokens.css" />
+<link rel="stylesheet" href="/style.css" />
+<script>
+  // apply the saved theme before first paint (no flash)
+  (() => {
+    try {
+      const s = JSON.parse(localStorage.getItem("mcpoll.settings") || localStorage.getItem("mcpctl.settings") || "{}");
+      const theme = s.theme || "system";
+      const dark = theme === "dark" || (theme === "system" && matchMedia("(prefers-color-scheme: dark)").matches);
+      document.documentElement.dataset.theme = dark ? "dark" : "light";
+      document.documentElement.dataset.density = s.density || "cozy";
+    } catch {}
+  })();
+</script>
+</head>
+<body>
+
+<header class="top">
+  <div class="ident">
+    <span class="mark"></span>
+    <span class="name">mcpoll</span>
+  </div>
+  <div class="stamp" id="stamp"><span id="stamp-text">读取中…</span></div>
+  <div class="acts">
+    <button class="btn btn-quiet" id="settings" title="设置">设置</button>
+  </div>
+</header>
+
+<div class="shell">
+
+  <nav class="rail" id="rail">
+    <div class="rail-label">Hosts</div>
+  </nav>
+
+  <main class="main">
+    <div class="savebar" id="savebar" hidden>
+      <span class="grow"><strong id="save-count">0</strong> 处改动未保存</span>
+      <button class="btn btn-quiet" id="discard">取消</button>
+      <button class="btn btn-solid" id="save">保存</button>
+    </div>
+
+    <section class="kpis" id="kpis">
+      <div class="kpi"><label>MCP 固定开销 / 请求</label><b><span class="skel" style="display:inline-block;height:20px;width:70px"></span></b><span>统计中…</span></div>
+    </section>
+    <section class="note" id="note" hidden></section>
+
+    <section class="board">
+      <div class="board-tools">
+        <div class="search"><input id="filter" type="search" placeholder="过滤 server（/）" autocomplete="off" /></div>
+        <span class="board-count" id="count"></span>
+        <button class="icon-btn" id="refresh" title="检查这个宿主是否有新会话（R）" aria-label="刷新">
+          <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M13.2 8a5.2 5.2 0 1 1-1.5-3.7" />
+            <path d="M13.4 2.6v3.2H10.2" />
+          </svg>
+        </button>
+      </div>
+      <div class="board-head">
+        <span>Server</span>
+        <span class="h-num">每次请求</span>
+        <span>占该宿主请求</span>
+        <span class="h-num">请求数</span>
+        <span class="h-num">调用</span>
+        <span class="h-num">累计占用</span>
+        <span style="text-align:right">暴露</span>
+      </div>
+      <div id="rows"></div>
+    </section>
+
+  </main>
+</div>
+
+<aside class="peek" id="peek" hidden>
+  <div class="peek-head">
+    <div>
+      <div class="peek-name" id="peek-name"></div>
+      <div class="peek-sub" id="peek-sub"></div>
+    </div>
+    <button class="btn btn-quiet" id="peek-close" title="关闭（Esc）">关闭</button>
+  </div>
+  <div class="peek-body" id="peek-body"></div>
+  <div class="peek-foot">
+    <button class="btn" id="peek-reveal">在文件夹中显示配置</button>
+  </div>
+</aside>
+
+<div class="scrim" id="scrim" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title">
+    <h2 id="sheet-title">设置</h2>
+    <div class="body" id="sheet-body"></div>
+    <div class="acts">
+      <button class="btn btn-solid" id="sheet-ok">完成</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"><span id="toast-text"></span><button id="toast-action" hidden></button></div>
+
+<script src="/app.js"></script>
+</body>
+</html>

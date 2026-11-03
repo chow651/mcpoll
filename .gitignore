@@ -1,0 +1,22 @@
+# dependencies
+node_modules/
+
+# build output
+release/
+dist/
+build/icon.iconset/
+
+# live user data — never committed (registry.example.json / calibration.example.json are the seeds)
+registry.json
+calibration.json
+inventory.seed.json
+.cache/
+.backups/
+.audit.log
+*.log
+
+# os / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

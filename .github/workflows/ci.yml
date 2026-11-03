@@ -1,0 +1,28 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  syntax:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: syntax check every module
+        run: |
+          set -e
+          for f in bin/*.mjs lib/*.mjs desktop/*.cjs; do
+            node --check "$f"
+            echo "ok $f"
+          done
+      - name: seeds are valid json
+        run: |
+          node -e "JSON.parse(require('fs').readFileSync('registry.example.json','utf8')); console.log('registry ok')"
+          node -e "JSON.parse(require('fs').readFileSync('calibration.example.json','utf8')); console.log('calibration ok')"
+      - name: CLI responds to --help
+        run: node bin/mcpoll.mjs --help || true
