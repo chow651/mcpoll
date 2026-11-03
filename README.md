@@ -173,10 +173,11 @@ never changes a switch on its own.
 Kept deliberately small, and each item is its own thing:
 
 - **A gateway plugin (separate project).** A local LLM gateway sees every request and knows the provider's
-  price table, so it can produce the money half of this bill for clients mcpoll cannot parse. What it
-  cannot do today is split that per MCP server — its audit stores counters, not the request's tools array.
-  A plugin that records each request's tool namespaces and characters would close the loop. That lives in
-  the gateway, not here: mcpoll must keep working for people who run no gateway.
+  price table, so it can produce the money half of this bill for clients mcpoll cannot parse. Its audit
+  stores counters rather than tool declarations, so it cannot split that money per server — but magpie's
+  Bun request hooks do hand a plugin the parsed request body (tool declarations included) and the finished
+  reply, so the split is buildable there. It stays a separate project: mcpoll has to keep working for
+  people who run no gateway at all.
 - **English UI.** The panel is Chinese; every string is inline in `ui/app.js` and `ui/index.html`.
 - **A calibration table across model families**, instead of factors measured on one machine.
 
