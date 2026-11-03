@@ -6,7 +6,17 @@ A local panel and CLI. It reads the session logs your agents already write, work
 each MCP server's tool definitions occupy per request, counts how often each one is actually called,
 and flips individual servers on or off per host.
 
-![mcpoll panel](docs/screenshot-dark.png)
+![mcpoll — switching a server off](docs/demo.gif)
+
+*Switching a never-called server off drops the per-request cost from 554 to 426 tokens. Nothing is written until you press save.*
+
+<details><summary>More screenshots</summary>
+
+![detail drawer](docs/screenshot-drawer.png)
+
+![light theme](docs/screenshot-light.png)
+
+</details>
 
 No proxy, no daemon, no prompt rewriting, no guessing.
 
